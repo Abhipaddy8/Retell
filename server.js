@@ -241,20 +241,109 @@ async function sendRecapEmail(email, name, summary, recordingUrl) {
       return;
     }
 
-    // Build email HTML
+    const callDate = new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Build beautiful email HTML
     let emailHtml = `
-      <p>Hi ${name},</p>
-      <p>Thanks for speaking with us today! Here's a quick recap of our conversation:</p>
-      <p><strong>Summary:</strong> ${summary || 'Our team will review your requirements and follow up shortly.'}</p>
-    `;
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; color: #333; line-height: 1.6; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+          .header p { margin: 8px 0 0 0; font-size: 14px; opacity: 0.9; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+          .greeting { font-size: 16px; margin-bottom: 24px; }
+          .section { margin-bottom: 28px; }
+          .section-title { font-size: 14px; font-weight: 600; color: #667eea; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+          .summary-box { background: white; padding: 16px; border-left: 4px solid #667eea; border-radius: 4px; }
+          .summary-box p { margin: 0; }
+          .action-item { background: white; padding: 12px; margin-bottom: 8px; border-radius: 4px; border-left: 3px solid #764ba2; }
+          .action-item strong { color: #764ba2; }
+          .call-details { background: white; padding: 16px; border-radius: 4px; font-size: 14px; }
+          .call-details p { margin: 8px 0; }
+          .recording-link { display: inline-block; margin-top: 16px; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 4px; font-weight: 500; }
+          .recording-link:hover { background: #764ba2; }
+          .cta-section { background: white; padding: 16px; border-radius: 4px; text-align: center; margin-bottom: 20px; }
+          .cta-section p { margin: 8px 0; font-size: 14px; }
+          .signature { color: #666; font-size: 13px; border-top: 1px solid #ddd; padding-top: 16px; margin-top: 24px; }
+          .signature p { margin: 4px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Thanks for calling!</h1>
+            <p>Here's your personalized call summary</p>
+          </div>
 
-    if (recordingUrl) {
-      emailHtml += `<p><strong>Call Recording:</strong> <a href="${recordingUrl}">Listen to recording</a></p>`;
-    }
+          <div class="content">
+            <div class="greeting">
+              <p>Hi <strong>${name}</strong>,</p>
+              <p>It was great chatting with you today. We really appreciate you taking the time to explore how FMSIT can help with your IT and software needs.</p>
+            </div>
 
-    emailHtml += `
-      <p>A member of our team will be in touch soon to discuss next steps.</p>
-      <p>Best regards,<br>The FMSIT Team</p>
+            <div class="section">
+              <div class="section-title">📋 Call Details</div>
+              <div class="call-details">
+                <p><strong>Date & Time:</strong> ${callDate}</p>
+                <p><strong>Specialist:</strong> Sophie from FMSIT</p>
+                <p><strong>Duration:</strong> Our conversation with you</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">💡 What We Discussed</div>
+              <div class="summary-box">
+                <p>${summary || 'Our team will review the details of your call and reach out with personalized recommendations based on your specific situation.'}</p>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">✅ Next Steps</div>
+              <div class="action-item">
+                <p><strong>Next Week:</strong> Our specialist team will review your requirements and reach out with a personalized assessment.</p>
+              </div>
+              <div class="action-item">
+                <p><strong>What They'll Cover:</strong> Detailed analysis of your IT setup, recommendations tailored to your challenges, and options that fit your timeline and budget.</p>
+              </div>
+              <div class="action-item">
+                <p><strong>Your Role:</strong> Just be ready to answer a few follow-up questions so we can give you the most relevant recommendations possible.</p>
+              </div>
+            </div>
+
+            ${recordingUrl ? `
+            <div class="section">
+              <div class="section-title">🎙️ Call Recording</div>
+              <p>You can review the conversation at your own pace:</p>
+              <a href="${recordingUrl}" class="recording-link">Listen to Your Recording</a>
+            </div>
+            ` : ''}
+
+            <div class="cta-section">
+              <p><strong>Have questions in the meantime?</strong></p>
+              <p>Feel free to reach out. We're here to help and there's no pressure—just honest conversations about what might work for your situation.</p>
+            </div>
+
+            <div class="signature">
+              <p>Best regards,</p>
+              <p><strong>FMSIT Tech Team</strong></p>
+              <p style="margin-top: 8px; font-size: 12px; color: #999;">We're committed to providing thoughtful, consultative IT solutions that actually fit your needs.</p>
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
     `;
 
     // Send email via GHL conversations
@@ -263,7 +352,7 @@ async function sendRecapEmail(email, name, summary, recordingUrl) {
       {
         type: 'Email',
         contactId: contact.id,
-        subject: 'Thanks for calling FMSIT - Here\'s your conversation summary!',
+        subject: `${name}, here's your call summary from FMSIT – next steps included`,
         html: emailHtml
       },
       {
